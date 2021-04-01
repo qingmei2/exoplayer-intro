@@ -4,6 +4,7 @@
     <list default="true" id="1aeaa1a7-114e-46bd-8080-277082f77498" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/exoplayer-codelab-00/gradle/wrapper/gradle-wrapper.properties" beforeDir="false" afterPath="$PROJECT_DIR$/exoplayer-codelab-00/gradle/wrapper/gradle-wrapper.properties" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/exoplayer-codelab-00/player-lib/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/exoplayer-codelab-00/player-lib/build.gradle" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/exoplayer-codelab-00/player-lib/src/main/java/com/example/exoplayer/PlayerActivity.java" beforeDir="false" afterPath="$PROJECT_DIR$/exoplayer-codelab-00/player-lib/src/main/java/com/example/exoplayer/PlayerActivity.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/exoplayer-codelab-00/player-lib/src/main/res/layout/activity_player.xml" beforeDir="false" afterPath="$PROJECT_DIR$/exoplayer-codelab-00/player-lib/src/main/res/layout/activity_player.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
