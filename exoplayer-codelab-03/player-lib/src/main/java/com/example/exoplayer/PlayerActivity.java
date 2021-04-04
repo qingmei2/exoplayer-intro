@@ -17,11 +17,14 @@ package com.example.exoplayer;
 
 import android.annotation.SuppressLint;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.MediaItem;
+import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.ui.PlayerView;
@@ -33,92 +36,130 @@ import com.google.android.exoplayer2.util.Util;
  */
 public class PlayerActivity extends AppCompatActivity {
 
-  private PlayerView playerView;
-  private SimpleExoPlayer player;
-  private boolean playWhenReady = true;
-  private int currentWindow = 0;
-  private long playbackPosition = 0;
+    private PlaybackStateListener playbackStateListener;
+    private static final String TAG = PlayerActivity.class.getName();
 
-  @Override
-  protected void onCreate(Bundle savedInstanceState) {
-    super.onCreate(savedInstanceState);
-    setContentView(R.layout.activity_player);
+    private PlayerView playerView;
+    private SimpleExoPlayer player;
+    private boolean playWhenReady = true;
+    private int currentWindow = 0;
+    private long playbackPosition = 0;
 
-    playerView = findViewById(R.id.video_view);
-  }
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_player);
 
-  @Override
-  public void onStart() {
-    super.onStart();
-    if (Util.SDK_INT > 23) {
-      initializePlayer();
-    }
-  }
+        playbackStateListener = new PlaybackStateListener();
 
-  @Override
-  public void onResume() {
-    super.onResume();
-    hideSystemUi();
-    if ((Util.SDK_INT <= 23 || player == null)) {
-      initializePlayer();
-    }
-  }
-
-  @Override
-  public void onPause() {
-    super.onPause();
-    if (Util.SDK_INT <= 23) {
-      releasePlayer();
-    }
-  }
-
-  @Override
-  public void onStop() {
-    super.onStop();
-    if (Util.SDK_INT > 23) {
-      releasePlayer();
-    }
-  }
-
-  private void initializePlayer() {
-    if (player == null) {
-      DefaultTrackSelector trackSelector = new DefaultTrackSelector(this);
-      trackSelector.setParameters(
-              trackSelector.buildUponParameters().setMaxVideoSizeSd());
-      player = new SimpleExoPlayer.Builder(this)
-              .setTrackSelector(trackSelector)
-              .build();
+        playerView = findViewById(R.id.video_view);
     }
 
-    playerView.setPlayer(player);
-    MediaItem mediaItem = new MediaItem.Builder()
-            .setUri(getString(R.string.media_url_dash))
-            .setMimeType(MimeTypes.APPLICATION_MPD)
-            .build();
-    player.setMediaItem(mediaItem);
-
-    player.setPlayWhenReady(playWhenReady);
-    player.seekTo(currentWindow, playbackPosition);
-    player.prepare();
-  }
-
-  private void releasePlayer() {
-    if (player != null) {
-      playbackPosition = player.getCurrentPosition();
-      currentWindow = player.getCurrentWindowIndex();
-      playWhenReady = player.getPlayWhenReady();
-      player.release();
-      player = null;
+    @Override
+    public void onStart() {
+        super.onStart();
+        if (Util.SDK_INT > 23) {
+            initializePlayer();
+        }
     }
-  }
 
-  @SuppressLint("InlinedApi")
-  private void hideSystemUi() {
-    playerView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE
-        | View.SYSTEM_UI_FLAG_FULLSCREEN
-        | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-        | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-        | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-        | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
-  }
+    @Override
+    public void onResume() {
+        super.onResume();
+        hideSystemUi();
+        if ((Util.SDK_INT <= 23 || player == null)) {
+            initializePlayer();
+        }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (Util.SDK_INT <= 23) {
+            releasePlayer();
+        }
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (Util.SDK_INT > 23) {
+            releasePlayer();
+        }
+    }
+
+    private void initializePlayer() {
+        if (player == null) {
+            DefaultTrackSelector trackSelector = new DefaultTrackSelector(this);
+            trackSelector.setParameters(
+                    trackSelector.buildUponParameters().setMaxVideoSizeSd());
+            player = new SimpleExoPlayer.Builder(this)
+                    .setTrackSelector(trackSelector)
+                    .build();
+        }
+
+        playerView.setPlayer(player);
+        MediaItem mediaItem = new MediaItem.Builder()
+                .setUri(getString(R.string.media_url_dash))
+                .setMimeType(MimeTypes.APPLICATION_MPD)
+                .build();
+        player.setMediaItem(mediaItem);
+
+        player.setPlayWhenReady(playWhenReady);
+        player.seekTo(currentWindow, playbackPosition);
+        player.addListener(playbackStateListener);
+        player.prepare();
+    }
+
+    private void releasePlayer() {
+        if (player != null) {
+            playbackPosition = player.getCurrentPosition();
+            currentWindow = player.getCurrentWindowIndex();
+            playWhenReady = player.getPlayWhenReady();
+            player.removeListener(playbackStateListener);
+            player.release();
+            player = null;
+        }
+    }
+
+    @SuppressLint("InlinedApi")
+    private void hideSystemUi() {
+        playerView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE
+                | View.SYSTEM_UI_FLAG_FULLSCREEN
+                | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
+    }
+
+    private class PlaybackStateListener implements Player.EventListener {
+
+        @Override
+        public void onPlaybackStateChanged(int state) {
+            String stateString;
+            switch (state) {
+                case ExoPlayer.STATE_IDLE:
+                    stateString = "ExoPlayer.STATE_IDLE      -";
+                    break;
+                case ExoPlayer.STATE_BUFFERING:
+                    stateString = "ExoPlayer.STATE_BUFFERING -";
+                    break;
+                case ExoPlayer.STATE_READY:
+                    stateString = "ExoPlayer.STATE_READY     -";
+                    break;
+                case ExoPlayer.STATE_ENDED:
+                    stateString = "ExoPlayer.STATE_ENDED     -";
+                    break;
+                default:
+                    stateString = "UNKNOWN_STATE             -";
+                    break;
+            }
+            Log.d(TAG, "changed state to " + stateString);
+        }
+
+        @Override
+        public void onIsPlayingChanged(boolean isPlaying) {
+            // 可以监听[是否播放中]状态的改变
+        }
+    }
 }
