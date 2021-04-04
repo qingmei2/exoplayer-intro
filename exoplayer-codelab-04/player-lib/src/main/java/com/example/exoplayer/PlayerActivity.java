@@ -100,8 +100,8 @@ public class PlayerActivity extends AppCompatActivity {
 
     playerView.setPlayer(player);
     MediaItem mediaItem = new MediaItem.Builder()
-            .setUri(getString(R.string.media_url_dash))
-            .setMimeType(MimeTypes.APPLICATION_MPD)
+            .setUri(getString(R.string.media_url_mp4))
+            .setMimeType(MimeTypes.APPLICATION_MP4)
             .build();
     player.setMediaItem(mediaItem);
 
